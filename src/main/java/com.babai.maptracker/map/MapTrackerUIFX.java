@@ -230,7 +230,7 @@ public class MapTrackerUIFX extends Application {
 
 	private void writeCfg(PrintStream stream) throws IOException {
 		Properties markerNames = new Properties();
-		markerNames.load(getClass().getResourceAsStream("/resources/names.properties"));
+		markerNames.load(getClass().getResourceAsStream("/names.properties"));
 		
 		for (Mark m : marks) {
 			stream.format("{%s %d %d}\n", markerNames.get(m.marker().name()), (int) m.x(), (int) m.y());
