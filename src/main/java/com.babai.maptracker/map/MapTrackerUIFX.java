@@ -54,6 +54,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.transform.Transform;
@@ -79,12 +80,9 @@ public class MapTrackerUIFX extends Application {
 
 	public void start(Stage stage) throws Exception {
 		stage.setTitle("Map Tracker");
-
 		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
 
-		// Main Contents
-		SplitPane mainPane = new SplitPane();
-		mainPane.setOrientation(Orientation.VERTICAL);
+		// Main Contents: the background image
 		img.setOnMouseClicked(e -> {
 			addMarker((int) e.getX(), (int) e.getY(), currentMarker);
 			updateView();
@@ -94,37 +92,41 @@ public class MapTrackerUIFX extends Application {
 		ScrollPane scrImg = new ScrollPane();
 		scrImg.setContent(img);
 		scrImg.setMinSize(size.width/2, 3*size.height/4);
+		
+		// Bottom Pane
 		GridPane pnlForm = new GridPane();
 		pnlForm.setHgap(10);
 		pnlForm.setVgap(10);
+		
+		// Row 1
 		Label lblMarker = new Label("Markers:");
 		ComboBox<Marker> cbMarkers = new ComboBox<>();
-		cbMarkers.setOnAction(e -> {
-			currentMarker = cbMarkers.getValue();
-		});
+		cbMarkers.setOnAction(e -> { currentMarker = cbMarkers.getValue(); });
 		Button btnAddMarkers = new Button("Add more markers...");
 		btnAddMarkers.setOnAction(e -> updateMarkerList(stage, cbMarkers));
+		FlowPane pnlMarkers = new FlowPane(cbMarkers, btnAddMarkers);
+		pnlMarkers.setHgap(10);
 		pnlForm.add(lblMarker, 0, 0);
-		pnlForm.add(cbMarkers, 1, 0);
-		pnlForm.add(btnAddMarkers, 2, 0);
+		pnlForm.add(pnlMarkers, 1, 0);
+		
+		// Row 2
 		Label lblCoord = new Label("Coordinates:");
-		pnlForm.add(lblCoord, 0, 1);
 		Label lblCoordX = new Label("X:");
 		Label lblCoordY = new Label("Y:");
 		tfCoordX = new TextField();
 		tfCoordY = new TextField();
-		pnlForm.add(lblCoordX, 1, 1);
-		pnlForm.add(tfCoordX, 2, 1);
-		pnlForm.add(lblCoordY, 3, 1);
-		pnlForm.add(tfCoordY, 4, 1);
-		mainPane.getItems().addAll(scrImg, pnlForm);
+		FlowPane pnlCoords = new FlowPane(lblCoordX, tfCoordX, lblCoordY, tfCoordY);
+		pnlCoords.setHgap(10);
+		pnlForm.add(lblCoord, 0, 1);
+		pnlForm.add(pnlCoords, 1, 1);
+		
+		SplitPane mainPane = new SplitPane(scrImg, pnlForm);
+		mainPane.setOrientation(Orientation.VERTICAL);
 
 		// Menu
-		Menu jmFile = new Menu("File");
 		MenuItem jmiOpen = new MenuItem("Open Background...");
 		MenuItem jmiSave = new MenuItem("Save...");
 		MenuItem jmiExit = new MenuItem("Exit");
-		Menu jmView = new Menu("View");
 		MenuItem jmiZoomIn = new MenuItem("Zoom In");
 		MenuItem jmiZoomOut = new MenuItem("Zoom Out");
 		jmiOpen.setAccelerator(KeyCombination.keyCombination("Ctrl+O"));
@@ -147,16 +149,12 @@ public class MapTrackerUIFX extends Application {
 				updateView();
 			}
 		});
-		jmFile.getItems().addAll(jmiOpen, jmiSave, jmiExit);
-		jmView.getItems().addAll(jmiZoomIn, jmiZoomOut);
-		MenuBar bar = new MenuBar();
-		bar.getMenus().addAll(jmFile, jmView);
+		
+		Menu jmFile = new Menu("File", null, jmiOpen, jmiSave, jmiExit);
+		Menu jmView = new Menu("View", null, jmiZoomIn, jmiZoomOut); 
+		MenuBar bar = new MenuBar(jmFile, jmView);
 
-		VBox menuBox = new VBox(5);
-		menuBox.getChildren().add(bar);
-		menuBox.getChildren().add(mainPane);
-
-		scene = new Scene(menuBox, size.width, size.height);
+		scene = new Scene(new VBox(5, bar, mainPane), size.width, size.height);
 		stage.setScene(scene);
 		stage.centerOnScreen();
 		stage.show();
@@ -238,6 +236,7 @@ public class MapTrackerUIFX extends Application {
 	}
 
 	private void addMarker(double x, double y, Marker marker) {
+		if (marker == null) return;
 		marks.add(new Mark(marker, x, y));
 		System.out.println("Drawing marker: " + marks.lastElement());
 
@@ -263,6 +262,7 @@ public class MapTrackerUIFX extends Application {
 	}
 
 	private void updateCursor(Marker marker) {
+		if (marker == null) return;
 		ImageCursor cursor = new ImageCursor(SwingFXUtils.toFXImage(marker.img(), null));
 		scene.setCursor(cursor);
 	}
