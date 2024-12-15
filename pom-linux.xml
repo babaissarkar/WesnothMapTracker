@@ -41,6 +41,11 @@
 	
 	<dependencies>
 		<dependency>
+			<groupId>io.github.darkxanter</groupId>
+			<artifactId>webp-imageio</artifactId>
+			<version>0.3.2</version>
+	  	</dependency>
+		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
 			<version>23</version>
@@ -74,6 +79,7 @@
 				<shadedArtifactAttached>true</shadedArtifactAttached>
 					<artifactSet>
 						<includes>
+							<include>io.github.darkxanter:webp-imageio</include>
 							<include>org.openjfx:javafx-base</include>
 							<include>org.openjfx:javafx-graphics</include>
 							<include>org.openjfx:javafx-controls</include>
