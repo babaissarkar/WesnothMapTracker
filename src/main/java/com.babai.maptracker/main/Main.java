@@ -11,8 +11,9 @@ public class Main {
 		
 		Config atkCfg = new Config("attack");
 		atkCfg.add("id", "staff");
+		atkCfg.add(new Config("specials"));
 		cfg.add(atkCfg);
 		
-		System.out.println(cfg.toString());
+		System.out.println(cfg);
 	}
 }
