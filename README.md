@@ -1,7 +1,7 @@
 # Map Tracker
 A JavaFX based GUI Map Tracking tool for Battle for Wesnoth.
 
-[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) [![CI](https://github.com/babaissarkar/WesnothMapTracker/actions/workflows/maven-publish.yml/badge.svg)](https://github.com/babaissarkar/WesnothMapTracker/actions/workflows/maven-publish.yml?query=branch%3Amain)
 
 # Installation
 Head over to the **Actions** tab, then download the artifacts for your OS from the latest CI run, such as this (https://github.com/babaissarkar/WesnothMapTracker/actions/runs/12048185526).
