@@ -21,8 +21,6 @@
  * 
  */
 
-package map;
-
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -61,6 +59,8 @@ import javafx.scene.transform.Transform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import map.*;
 
 public class MapTrackerUIFX extends Application {
 	private double scaleFactor = 1.0;

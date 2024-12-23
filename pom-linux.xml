@@ -88,7 +88,7 @@
 					</artifactSet>
 				<transformers>
 					<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-						<mainClass>map.Main</mainClass>
+						<mainClass>Main</mainClass>
 					</transformer>
 				</transformers>
 			</configuration>
@@ -130,7 +130,7 @@
 					<argument>--description</argument>
 					<argument>${project.description}</argument>
 					<argument>--main-class</argument>
-					<argument>map.Main</argument>
+					<argument>Main</argument>
 					<argument>--icon</argument>
 					<argument>src/main/resources/${project.artifactId}.png</argument>
 					<argument>--linux-shortcut</argument>
