@@ -21,23 +21,27 @@ public interface PreprocessorConstants {
   /** RegularExpression Id. */
   int UNDEF = 6;
   /** RegularExpression Id. */
-  int LBR = 7;
+  int TEXTDOMAIN = 7;
   /** RegularExpression Id. */
-  int RBR = 8;
+  int LBR = 8;
   /** RegularExpression Id. */
-  int EQL = 9;
+  int RBR = 9;
   /** RegularExpression Id. */
-  int SPACE = 10;
+  int EQL = 10;
   /** RegularExpression Id. */
-  int STRING = 11;
+  int SLASH = 11;
   /** RegularExpression Id. */
-  int NUMBER = 12;
+  int SPACE = 12;
   /** RegularExpression Id. */
-  int LETTER = 13;
+  int STRING = 13;
   /** RegularExpression Id. */
-  int DIGIT = 14;
+  int NUMBER = 14;
   /** RegularExpression Id. */
-  int EOL = 15;
+  int LETTER = 15;
+  /** RegularExpression Id. */
+  int DIGIT = 16;
+  /** RegularExpression Id. */
+  int EOL = 17;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -51,9 +55,11 @@ public interface PreprocessorConstants {
     "\"#ifdef\"",
     "\"#endif\"",
     "\"#undef\"",
+    "\"#textdomain\"",
     "\"{\"",
     "\"}\"",
     "\"=\"",
+    "\"/\"",
     "<SPACE>",
     "<STRING>",
     "<NUMBER>",

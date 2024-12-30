@@ -63,7 +63,7 @@ TOKEN_MGR_DECLS : {
 	}
 }
 
-SKIP : { < "!" (~["\n","\r"])* ("\n"|"\r"|"\r\n") > }
+SKIP : { < ("# "|"##"|"###") (~["\n","\r"])* ("\n"|"\r"|"\r\n") > }
 
 TOKEN : {
 	< DEFINE : "#define" >	{ debugPrint("DEFINE"); }
@@ -71,20 +71,26 @@ TOKEN : {
 |	< IFDEF  : "#ifdef" >	{ debugPrint("IFDEF"); }
 |	< ENDIF  : "#endif" >	{ debugPrint("ENDIF"); }
 |	< UNDEF  : "#undef" >	{ debugPrint("UNDEF"); }
+|	< TEXTDOMAIN : "#textdomain" > { debugPrint("TEXTDOMAIN"); }
 |	< LBR    : "{" >		{ debugPrint("Left Brace"); }
 |	< RBR    : "}" >		{ debugPrint("Right Brace"); }
 |	< EQL    : "=" >		{ debugPrint("Equals"); }
+|	< SLASH  : "/" >		{ debugPrint("Slash"); }
 |	< SPACE  : " "|"\t" >	{ debugPrint("Space"); }
 |	< STRING : (<LETTER>|<DIGIT>)+ >			{ debugPrint("STRING"); }
 |	< NUMBER : (<DIGIT>)+ ("." (<DIGIT>)+)? >	{ debugPrint("NUMBER"); }
-|	< LETTER : ["A"-"Z"]|["a"-"z"] >			{ debugPrint("LETTER"); }
+|	< LETTER :
+		["A"-"Z"]|["a"-"z"]|<EQL>|"?"|"!"|":"|";"|"."|","
+		|"["|"]"|"_"|"-"|"\""|"'"|<SLASH>
+	>
+	{ debugPrint("LETTER"); }
 |	< DIGIT  : ["0"-"9"] >						{ debugPrint("DIGIT"); }
 |	< EOL    : "\n"|"\r"|"\r\n" >				{ debugPrint("EOL"); }
 }
 
 void getParsed() :
 {
-	Token str, body;
+	Token tok;
 }
 {
 	(
@@ -92,6 +98,7 @@ void getParsed() :
 		| expand()
 		| ifdef()
 		| undef()
+		| <TEXTDOMAIN> <SPACE> (tok=<STRING>) { debugPrint("Textdomain " + tok.image); }
 		| (<SPACE>)
 		| (<EOL>)
 		| (<EOF>) { System.exit(0); }
@@ -119,6 +126,7 @@ void define() :
 				| body=<LBR>
 				| body=<RBR>
 				| body=<SPACE>
+				| body=<EOL>
 			) { sb.append(body.toString()); }
 		)+
 		<ENDDEF>
