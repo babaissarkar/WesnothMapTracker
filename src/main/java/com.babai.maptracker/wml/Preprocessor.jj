@@ -90,6 +90,7 @@ void getParsed() :
 	(
 		  define()
 		| expand()
+		| undef()
 		| (<SPACE>)
 		| (<EOL>)
 		| (<EOF>) { System.exit(0); }
@@ -152,6 +153,19 @@ void expand() :
 			warningPrint("undefined macro " + name.toString());
 		}
 	}
+}
+
+void undef() :
+{
+	Token name;
+}
+{
+	(
+		<UNDEF> <SPACE> (name=<STRING>) {
+			debugPrint("removing macro " + name.toString());
+			defines.remove(name.image);
+		}
+	)
 }
 
 
