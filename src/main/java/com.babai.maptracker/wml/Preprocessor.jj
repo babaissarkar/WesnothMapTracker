@@ -1,0 +1,157 @@
+options
+{
+	LOOKAHEAD=3;
+	STATIC=false;
+}
+
+PARSER_BEGIN(Preprocessor)
+package wml;
+
+import java.util.*;
+import java.util.logging.*;
+import java.io.*;
+
+public class Preprocessor {
+	private HashMap<String, Definition> defines = new HashMap<>();
+	private final Logger pL = Logger.getLogger("preprocessor.parse");
+	private boolean showParseLogs = false;
+	
+	public static void main(String[] args) {
+		ArgParser argParse = new ArgParser();
+		argParse.parseArgs(args);
+		InputStream in = argParse.in;
+		
+		if (in == null) return;
+		try {
+			Preprocessor p = new Preprocessor(in);
+			p.showParseLogs = argParse.showParseLogs;
+			p.token_source.setLogs(argParse.showLogs);
+			while (true) { 
+				p.getParsed();
+			}
+		} catch(Exception e) {
+			// nothing
+		}
+	}
+	
+	public void debugPrint(String s) {
+		if (showParseLogs) {
+			pL.info(s);
+		}
+	}
+	
+	public void warningPrint(String s) {
+		if (showParseLogs) {
+			pL.warning(s);
+		}
+	}
+}
+
+PARSER_END(Preprocessor)
+
+TOKEN_MGR_DECLS : {
+	private boolean showLogs = false;
+	private final Logger tL = Logger.getLogger("preprocessor.token");
+	
+	public void setLogs(boolean showLogs) {
+		this.showLogs = showLogs;
+	}
+	public void debugPrint(String s) {
+		if (showLogs) {
+			tL.info(s);
+		}
+	}
+}
+
+SKIP : { < "!" (~["\n","\r"])* ("\n"|"\r"|"\r\n") > }
+
+TOKEN : {
+	< DEFINE : "#define" >	{ debugPrint("DEFINE"); }
+|	< ENDDEF : "#enddef" >	{ debugPrint("ENDDEF"); }
+|	< IFDEF  : "#ifdef" >
+|	< ENDIF  : "#endif" >
+|	< UNDEF  : "#undef" >
+|	< LBR    : "{" >		{ debugPrint("LBR"); }
+|	< RBR    : "}" >		{ debugPrint("RBR"); }
+|	< EQL    : "=" >		{ debugPrint("EQL"); }
+|	< SPACE  : " "|"\t" >	{ debugPrint("Space"); }
+|	< STRING : (<LETTER>|<DIGIT>)+ >			{ debugPrint("STRING"); }
+|	< NUMBER : (<DIGIT>)+ ("." (<DIGIT>)+)? >	{ debugPrint("NUMBER"); }
+|	< LETTER : ["A"-"Z"]|["a"-"z"] >			{ debugPrint("LETTER"); }
+|	< DIGIT  : ["0"-"9"] >						{ debugPrint("DIGIT"); }
+|	< EOL    : "\n"|"\r"|"\r\n" >				{ debugPrint("EOL"); }
+}
+
+void getParsed() :
+{
+	Token str, body;
+}
+{
+	(
+		  define()
+		| expand()
+		| (<SPACE>)
+		| (<EOL>)
+		| (<EOF>) { System.exit(0); }
+	)+
+}
+
+void define() :
+{
+	Token name, body, arg;
+	StringBuilder sb = new StringBuilder();
+	Definition def;
+	Vector<String> args = new Vector<>();
+}
+{
+	(
+		<DEFINE> <SPACE>
+		(name=<STRING>)
+		(
+			<SPACE> (arg=<STRING>) { args.add(arg.toString()); }
+		)*
+		(<EOL>)?
+		(
+			(
+				  body=<STRING>
+				| body=<LBR>
+				| body=<RBR>
+				| body=<SPACE>
+			) { sb.append(body.toString()); }
+		)+
+		<ENDDEF>
+	) {
+		def = new Definition(name.toString(), sb.toString(), args);
+		debugPrint("defining macro " + name.toString());
+		defines.put(name.toString(), def);
+	}
+}
+
+void expand() :
+{
+	Token name, arg;
+	Vector<String> args = new Vector<>();
+}
+{
+	(
+		(<LBR>) (name=<STRING>)
+		(
+			<SPACE> (arg=<STRING>) { args.add(arg.toString()); }
+		)*
+		(<RBR>)
+	) {
+		Definition def = defines.get(name.toString());
+		if (def != null) {
+			debugPrint("expanding macro " + name.toString());
+			try {
+				System.out.println(def.expand(args));
+			} catch(IllegalArgumentException e) {
+				e.printStackTrace();
+			}
+		} else {
+			warningPrint("undefined macro " + name.toString());
+		}
+	}
+}
+
+
