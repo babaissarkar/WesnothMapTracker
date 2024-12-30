@@ -68,12 +68,12 @@ SKIP : { < "!" (~["\n","\r"])* ("\n"|"\r"|"\r\n") > }
 TOKEN : {
 	< DEFINE : "#define" >	{ debugPrint("DEFINE"); }
 |	< ENDDEF : "#enddef" >	{ debugPrint("ENDDEF"); }
-|	< IFDEF  : "#ifdef" >
-|	< ENDIF  : "#endif" >
-|	< UNDEF  : "#undef" >
-|	< LBR    : "{" >		{ debugPrint("LBR"); }
-|	< RBR    : "}" >		{ debugPrint("RBR"); }
-|	< EQL    : "=" >		{ debugPrint("EQL"); }
+|	< IFDEF  : "#ifdef" >	{ debugPrint("IFDEF"); }
+|	< ENDIF  : "#endif" >	{ debugPrint("ENDIF"); }
+|	< UNDEF  : "#undef" >	{ debugPrint("UNDEF"); }
+|	< LBR    : "{" >		{ debugPrint("Left Brace"); }
+|	< RBR    : "}" >		{ debugPrint("Right Brace"); }
+|	< EQL    : "=" >		{ debugPrint("Equals"); }
 |	< SPACE  : " "|"\t" >	{ debugPrint("Space"); }
 |	< STRING : (<LETTER>|<DIGIT>)+ >			{ debugPrint("STRING"); }
 |	< NUMBER : (<DIGIT>)+ ("." (<DIGIT>)+)? >	{ debugPrint("NUMBER"); }
@@ -90,6 +90,7 @@ void getParsed() :
 	(
 		  define()
 		| expand()
+		| ifdef()
 		| undef()
 		| (<SPACE>)
 		| (<EOL>)
@@ -141,16 +142,33 @@ void expand() :
 		)*
 		(<RBR>)
 	) {
-		Definition def = defines.get(name.toString());
+		Definition def = defines.get(name.image);
 		if (def != null) {
-			debugPrint("expanding macro " + name.toString());
+			debugPrint("expanding macro " + name.image);
 			try {
 				System.out.println(def.expand(args));
 			} catch(IllegalArgumentException e) {
 				e.printStackTrace();
 			}
 		} else {
-			warningPrint("undefined macro " + name.toString());
+			warningPrint("undefined macro " + name.image);
+		}
+	}
+}
+
+void ifdef() :
+{
+	Token name;
+}
+{
+	(<IFDEF> <SPACE> (name=<STRING>) <EOL>) {
+		if (defines.get(name.image) == null) {
+			debugPrint("ifdef: define " + name.image + " not found, skipping block");
+			while(token.kind != ENDIF) {
+				token = getNextToken();
+			}
+		} else {
+			debugPrint("ifdef: define " + name.image + " found, parsing block");
 		}
 	}
 }
@@ -160,12 +178,11 @@ void undef() :
 	Token name;
 }
 {
-	(
-		<UNDEF> <SPACE> (name=<STRING>) {
-			debugPrint("removing macro " + name.toString());
-			defines.remove(name.image);
-		}
-	)
+	<UNDEF> <SPACE> (name=<STRING>) {
+		debugPrint("removing macro " + name.toString());
+		defines.remove(name.image);
+	}
+
 }
 
 

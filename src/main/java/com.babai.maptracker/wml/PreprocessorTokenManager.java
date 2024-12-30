@@ -500,20 +500,35 @@ void TokenLexicalActions(Token matchedToken)
         lengthOfMatch = jjstrLiteralImages[3].length();
                                   debugPrint("ENDDEF");
          break;
+      case 4 :
+        image.append(jjstrLiteralImages[4]);
+        lengthOfMatch = jjstrLiteralImages[4].length();
+                                  debugPrint("IFDEF");
+         break;
+      case 5 :
+        image.append(jjstrLiteralImages[5]);
+        lengthOfMatch = jjstrLiteralImages[5].length();
+                                  debugPrint("ENDIF");
+         break;
+      case 6 :
+        image.append(jjstrLiteralImages[6]);
+        lengthOfMatch = jjstrLiteralImages[6].length();
+                                  debugPrint("UNDEF");
+         break;
       case 7 :
         image.append(jjstrLiteralImages[7]);
         lengthOfMatch = jjstrLiteralImages[7].length();
-                                          debugPrint("LBR");
+                                          debugPrint("Left Brace");
          break;
       case 8 :
         image.append(jjstrLiteralImages[8]);
         lengthOfMatch = jjstrLiteralImages[8].length();
-                                          debugPrint("RBR");
+                                          debugPrint("Right Brace");
          break;
       case 9 :
         image.append(jjstrLiteralImages[9]);
         lengthOfMatch = jjstrLiteralImages[9].length();
-                                          debugPrint("EQL");
+                                          debugPrint("Equals");
          break;
       case 10 :
         image.append(input_stream.GetSuffix(jjimageLen + (lengthOfMatch = jjmatchedPos + 1)));
