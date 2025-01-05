@@ -90,12 +90,12 @@ TOKEN : {
 
 void getParsed() :
 {
-	Token tok;
+	Token tok; String exp;
 }
 {
 	(
-		  define()
-		| expand()
+		  define() 
+		| exp=expand() { System.out.println(exp); }
 		| ifdef()
 		| undef()
 		| <TEXTDOMAIN> <SPACE> (tok=<STRING>) { debugPrint("Textdomain " + tok.image); }
@@ -110,6 +110,7 @@ void define() :
 	Token name, body, arg;
 	StringBuilder sb = new StringBuilder();
 	Definition def;
+	String macro;
 	Vector<String> args = new Vector<>();
 }
 {
@@ -121,6 +122,10 @@ void define() :
 		)*
 		(<EOL>)?
 		(
+			(
+				macro=expand()
+			) { sb.append(macro); }
+			|
 			(
 				  body=<STRING>
 				| body=<LBR>
@@ -137,29 +142,32 @@ void define() :
 	}
 }
 
-void expand() :
+String expand() :
 {
 	Token name, arg;
 	Vector<String> args = new Vector<>();
+	StringBuilder sb = new StringBuilder();
 }
 {
 	(
-		(<LBR>) (name=<STRING>)
+		(<LBR>) (name=<STRING>) { sb.append("{" + name.image); }
 		(
-			<SPACE> (arg=<STRING>) { args.add(arg.toString()); }
+			<SPACE> (arg=<STRING>) { sb.append(" " + arg.image); args.add(arg.toString()); }
 		)*
-		(<RBR>)
+		(<RBR>) { sb.append("}"); }
 	) {
 		Definition def = defines.get(name.image);
 		if (def != null) {
 			debugPrint("expanding macro " + name.image);
 			try {
-				System.out.println(def.expand(args));
+				return def.expand(args);
 			} catch(IllegalArgumentException e) {
 				e.printStackTrace();
+				return sb.toString();
 			}
 		} else {
 			warningPrint("undefined macro " + name.image);
+			return sb.toString();
 		}
 	}
 }
