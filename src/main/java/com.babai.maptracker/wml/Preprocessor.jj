@@ -10,27 +10,30 @@ package wml;
 import java.util.*;
 import java.util.logging.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Preprocessor {
-	private HashMap<String, Definition> defines = new HashMap<>();
 	private final Logger pL = Logger.getLogger("preprocessor.parse");
 	private boolean showParseLogs = false;
+	private HashMap<String, Definition> defines = new HashMap<>();
 	
 	public static void main(String[] args) {
 		ArgParser argParse = new ArgParser();
 		argParse.parseArgs(args);
-		InputStream in = argParse.in;
 		
-		if (in == null) return;
+		if (argParse.in == null) return;
+		
 		try {
-			Preprocessor p = new Preprocessor(in);
+			Preprocessor p = new Preprocessor(argParse.in);
 			p.showParseLogs = argParse.showParseLogs;
+			p.token_source.setDataPath(argParse.dataPath);
 			p.token_source.setLogs(argParse.showLogs);
 			while (true) { 
 				p.getParsed();
 			}
 		} catch(Exception e) {
-			// nothing
+			e.printStackTrace();
 		}
 	}
 	
@@ -51,11 +54,21 @@ PARSER_END(Preprocessor)
 
 TOKEN_MGR_DECLS : {
 	private boolean showLogs = false;
+	private Path dataPath;
 	private final Logger tL = Logger.getLogger("preprocessor.token");
 	
 	public void setLogs(boolean showLogs) {
 		this.showLogs = showLogs;
 	}
+
+	public void setDataPath(Path path) {
+		this.dataPath = path;
+	}
+
+	public Path getDataPath() {
+		return this.dataPath;
+	}
+	
 	public void debugPrint(String s) {
 		if (showLogs) {
 			tL.info(s);
@@ -77,6 +90,7 @@ TOKEN : {
 |	< EQL    : "=" >		{ debugPrint("Equals"); }
 |	< SLASH  : "/" >		{ debugPrint("Slash"); }
 |	< SPACE  : " "|"\t" >	{ debugPrint("Space"); }
+|	< PATH   : (<STRING>) (<SLASH>) (<STRING>|<SLASH>)+ >	{ debugPrint("Path"); }
 |	< STRING : (<LETTER>|<DIGIT>)+ >			{ debugPrint("STRING"); }
 |	< NUMBER : (<DIGIT>)+ ("." (<DIGIT>)+)? >	{ debugPrint("NUMBER"); }
 |	< LETTER :
@@ -98,6 +112,7 @@ void getParsed() :
 		| exp=expand() { System.out.println(exp); }
 		| ifdef()
 		| undef()
+		| expandPath()
 		| <TEXTDOMAIN> <SPACE> (tok=<STRING>) { debugPrint("Textdomain " + tok.image); }
 		| (<SPACE>)
 		| (<EOL>)
@@ -168,6 +183,29 @@ String expand() :
 		} else {
 			warningPrint("undefined macro " + name.image);
 			return sb.toString();
+		}
+	}
+}
+
+void expandPath() :
+{
+	Token tok;
+	StringBuilder sb = new StringBuilder();
+}
+{
+	(<LBR> (tok=<PATH>) <RBR>) {
+		Path p;
+		
+		if (tok.image.startsWith(".")) {
+			p = Path.of(tok.image);
+		} else {
+			p = token_source.getDataPath().resolve(tok.image);
+		}
+		
+		if (Files.exists(p)) {
+			debugPrint(tok.image + " found, including");
+		} else {
+			warningPrint(tok.image + " not found");
 		}
 	}
 }
