@@ -20,7 +20,8 @@ Head over to the **Actions** tab, then download the artifacts for your OS from t
 You'll need Java 21 and Maven. To build, clone this repository, then run `mvn package --file pom-for-your-distro.xml` or `mvn package --file pom-standalone.xml` for building the jar only (the final jar can be found in `jar` subfolder, while the packages are generated in the same folder as the pom files).
 
 # Screenshots
-![Main Window in Action](/screenshots/maptracker.png "Map Tracker in Action")
+![Main Window](/screenshots/maptracker1.png "Map Tracker (initial)")
+![Main Window in Action](/screenshots/maptracker2.png "Map Tracker in Action")
 
 # License
 Available under the [GNU GPL 2.0 license](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
