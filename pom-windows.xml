@@ -131,8 +131,14 @@
                     <argument>--main-class</argument>
                     <argument>Main</argument>
                     <argument>--win-menu</argument>
+                    <argument>--win-menu-group</argument>
+                    <argument>MapTracker</argument>
+                    <argument>--win-shortcut</argument>
                     <argument>--win-shortcut-prompt</argument>
                     <argument>--win-per-user-install</argument>
+                    <argument>--win-dir-chooser</argument>
+                    <argument>--icon</argument>
+                    <argument>maptracker.ico</argument>
                 </arguments>
             </configuration>
         </plugin>
