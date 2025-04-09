@@ -8,9 +8,9 @@ Head over to the **Actions** tab, then download the artifacts for your OS from t
 
 # Usage
 * Click **Open Background** from the **File** menu to select a background to draw the markers on.
-* Click **Add more markers** button and select Battle for Wesnoth *misc* directory (the one with the new_journey/new_rest marker etc.).
-* Select a marker from the adjoining list and click on the background to draw. Supported markers and their corresponding macros which will be generated can be [here](https://github.com/babaissarkar/WesnothMapTracker/blob/main/src/main/resources/names.properties). (You can map any other markers by editing the properties file and rebuilding, or can request me to add it.)
-* Save using **File > Save** once you are done. The output is like this:
+* Some markers are preloaded. Click **Load more graphics** button and select Battle for Wesnoth *misc* directory (the one with the new_journey/new_rest marker etc.) or your directory with more images to use them as markers.
+* Select a marker from the adjoining list and click on the background to draw. For preloaded markers, their corresponding macros which will be generated is defined [here](https://github.com/babaissarkar/WesnothMapTracker/blob/main/src/main/resources/names.properties). (You can map any other markers by editing the properties file and rebuilding, or can request me to add it.)
+* Save using **File > Save** once you are done (or copy/paste from the output text area in the bottom pane). The output is like this:
 ```
   {NEW_JOURNEY 455 300}
   {NEW_REST 500 300}
