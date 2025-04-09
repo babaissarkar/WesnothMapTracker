@@ -30,11 +30,16 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-public record Marker(String name, String path, BufferedImage img) {
+public record Marker(String name, String filename, BufferedImage img) {
 	
-	public static Marker load(String name, String path) throws IOException {
-		var img = ImageIO.read(new FileInputStream(new File(path)));
-		return new Marker(name, path, img);
+	public static Marker load(String name, String filename, File imgFile) throws IOException {
+		var img = ImageIO.read(new FileInputStream(imgFile));
+		return new Marker(name, filename, img);
+	}
+	
+	public static Marker loadInternal(String name, String filename) throws IOException {
+		var img = ImageIO.read(Marker.class.getResourceAsStream("/markers/" + filename));
+		return new Marker(name, filename, img);
 	}
 	
 	@Override

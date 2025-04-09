@@ -66,7 +66,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.transform.Transform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -75,6 +74,8 @@ import javafx.stage.Stage;
 import map.*;
 
 public class MapTrackerUIFX extends Application {
+	static final Properties markerNames = new Properties();
+	
 	private double scaleFactor = 1.0;
 	private BufferedImage origBg = null, currentBg = null;
 	private Marker currentMarker = null;
@@ -85,6 +86,14 @@ public class MapTrackerUIFX extends Application {
 	private TextField tfCoordX = new TextField();
 	private TextField tfCoordY = new TextField();
 	private TextArea tfPreview = new TextArea();
+	
+	static {
+		try {
+			markerNames.load(MapTrackerUIFX.class.getResourceAsStream("/names.properties"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static void show(String...args) {
 		launch(args);
@@ -117,9 +126,10 @@ public class MapTrackerUIFX extends Application {
 		lblMarker.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
 		
 		ComboBox<Marker> cbMarkers = new ComboBox<>();
+		loadInternalMarkers(cbMarkers);
 		cbMarkers.setOnAction(e -> { currentMarker = cbMarkers.getValue(); });
 		
-		Button btnAddMarkers = new Button("Lore more graphics...");
+		Button btnAddMarkers = new Button("Load more graphics...");
 		btnAddMarkers.setOnAction(e -> updateMarkerList(stage, cbMarkers));
 		
 		FlowPane pnlMarkers = new FlowPane(cbMarkers, btnAddMarkers);
@@ -143,7 +153,10 @@ public class MapTrackerUIFX extends Application {
 		pnlForm.add(pnlCoords, 0, 3);
 		
 		// Output Preview TextField (row 1 to 4, col 2)
-		tfPreview.setText("A preview of the generated code will appear here once you start adding markers to the map...");
+		tfPreview.setText("""
+			To start, load a background map image via File > Open Background..., then select a Marker.
+			A preview of the generated code will appear here once you start adding markers to the map.
+			""");
 		tfPreview.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 		pnlForm.add(tfPreview, 1, 0, 4, 4);
 		
@@ -164,7 +177,7 @@ public class MapTrackerUIFX extends Application {
 		pnlForm.setStyle("-fx-background-color: lightblue");
 
 		// Menu
-		MenuItem jmiOpen = new MenuItem("Open Background Map Image...");
+		MenuItem jmiOpen = new MenuItem("Open Background...");
 		MenuItem jmiSave = new MenuItem("Save...");
 		MenuItem jmiExit = new MenuItem("Exit");
 		MenuItem jmiZoomIn = new MenuItem("Zoom In");
@@ -222,7 +235,11 @@ public class MapTrackerUIFX extends Application {
 				System.out.println("Selecting: " + f.getAbsolutePath());
 				for (File entry : f.listFiles()) {
 					if (!entry.isDirectory()) {
-						markers.add(Marker.load(entry.getName(), entry.getAbsolutePath()));
+						markers.add(
+							Marker.load(
+								(String) markerNames.getProperty(entry.getName()),
+								entry.getName(),
+								entry));
 						cbMarkers.getItems().add(markers.lastElement());
 						System.out.println("Loaded: " + markers.lastElement());
 					}
@@ -270,15 +287,25 @@ public class MapTrackerUIFX extends Application {
 		}
 	}
 
-	private void write(PrintWriter stream) {
-		Properties markerNames = new Properties();
-		try {
-			markerNames.load(getClass().getResourceAsStream("/names.properties"));
-			for (Mark m : marks) {
-				stream.format("{%s %d %d}\n", markerNames.get(m.marker().name()), (int) m.x(), (int) m.y());
+	private void loadInternalMarkers(ComboBox<Marker> cbMarkers) {
+		markerNames.forEach((k, v) -> {
+			try {
+				markers.add(Marker.loadInternal(
+					(String) v,
+					(String) k));
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+			cbMarkers.getItems().add(markers.lastElement());
+			System.out.println("Loaded: " + markers.lastElement());
+		});
+		cbMarkers.setValue(markers.firstElement());
+		currentMarker = markers.firstElement();
+	}
+	
+	private void write(PrintWriter stream) {
+		for (Mark m : marks) {
+			stream.format("{%s %d %d}\n", m.marker().name(), (int) m.x(), (int) m.y());
 		}
 	}
 
