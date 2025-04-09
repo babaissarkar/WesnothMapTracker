@@ -34,10 +34,14 @@ import java.util.Vector;
 import java.util.prefs.Preferences;
 
 import javax.imageio.ImageIO;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.embed.swing.SwingNode;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -62,6 +66,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.transform.Transform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -100,7 +105,7 @@ public class MapTrackerUIFX extends Application {
 		
 		ScrollPane scrImg = new ScrollPane();
 		scrImg.setContent(img);
-		scrImg.setMinSize(size.width/2, 3*size.height/4);
+		scrImg.setMinSize(0.5*size.width, 0.70*size.height);
 		
 		// Bottom Pane
 		GridPane pnlForm = new GridPane();
@@ -114,7 +119,7 @@ public class MapTrackerUIFX extends Application {
 		ComboBox<Marker> cbMarkers = new ComboBox<>();
 		cbMarkers.setOnAction(e -> { currentMarker = cbMarkers.getValue(); });
 		
-		Button btnAddMarkers = new Button("Add more markers...");
+		Button btnAddMarkers = new Button("Lore more graphics...");
 		btnAddMarkers.setOnAction(e -> updateMarkerList(stage, cbMarkers));
 		
 		FlowPane pnlMarkers = new FlowPane(cbMarkers, btnAddMarkers);
@@ -151,7 +156,7 @@ public class MapTrackerUIFX extends Application {
 		RowConstraints row1 = new RowConstraints();
 		row1.setVgrow(Priority.ALWAYS);
 		pnlForm.getRowConstraints().addAll(row1, row1, row1, row1);
-		pnlForm.setPadding(new Insets(2));
+		pnlForm.setPadding(new Insets(10));
 		
 		SplitPane mainPane = new SplitPane(scrImg, pnlForm);
 		mainPane.setOrientation(Orientation.VERTICAL);
@@ -159,11 +164,12 @@ public class MapTrackerUIFX extends Application {
 		pnlForm.setStyle("-fx-background-color: lightblue");
 
 		// Menu
-		MenuItem jmiOpen = new MenuItem("Open Background...");
+		MenuItem jmiOpen = new MenuItem("Open Background Map Image...");
 		MenuItem jmiSave = new MenuItem("Save...");
 		MenuItem jmiExit = new MenuItem("Exit");
 		MenuItem jmiZoomIn = new MenuItem("Zoom In");
 		MenuItem jmiZoomOut = new MenuItem("Zoom Out");
+		MenuItem jmiUsage = new MenuItem("Usage Guide");
 		
 		jmiOpen.setAccelerator(KeyCombination.keyCombination("Ctrl+O"));
 		jmiSave.setAccelerator(KeyCombination.keyCombination("Ctrl+S"));
@@ -186,10 +192,12 @@ public class MapTrackerUIFX extends Application {
 				updateView(img);
 			}
 		});
+		jmiUsage.setOnAction(e -> showHelp());
 		
 		Menu jmFile = new Menu("File", null, jmiOpen, jmiSave, jmiExit);
-		Menu jmView = new Menu("View", null, jmiZoomIn, jmiZoomOut); 
-		MenuBar bar = new MenuBar(jmFile, jmView);
+		Menu jmView = new Menu("View", null, jmiZoomIn, jmiZoomOut);
+		Menu jmHelp = new Menu("Help", null, jmiUsage);
+		MenuBar bar = new MenuBar(jmFile, jmView, jmHelp);
 		bar.setStyle("-fx-background-color: lightblue");
 
 		VBox box = new VBox(5, bar, mainPane);
@@ -274,6 +282,30 @@ public class MapTrackerUIFX extends Application {
 		}
 	}
 
+	private void showHelp() {
+		Stage stage = new Stage();
+		stage.setTitle("Usage Guide");
+		final SwingNode node = new SwingNode();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				JTextPane textPane = new JTextPane();
+				try {
+					textPane.setPage(this.getClass().getResource("/docs/Usage.html"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				node.setContent(new JScrollPane(textPane));
+			}
+		});
+		VBox box = new VBox(node);
+		VBox.setVgrow(node, Priority.ALWAYS);
+		Scene scene = new Scene(box, 640, 480);
+		stage.setScene(scene);
+		stage.centerOnScreen();
+		stage.show();
+	}
+	
 	private void addMarker(double x, double y, Marker marker) {
 		if (marker == null) return;
 		
