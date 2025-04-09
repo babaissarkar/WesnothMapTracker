@@ -138,7 +138,7 @@
                     <argument>--win-per-user-install</argument>
                     <argument>--win-dir-chooser</argument>
                     <argument>--icon</argument>
-                    <argument>maptracker.ico</argument>
+                    <argument>${project.artifactId}.ico</argument>
                 </arguments>
             </configuration>
         </plugin>
