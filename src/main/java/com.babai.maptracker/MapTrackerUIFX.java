@@ -51,6 +51,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -126,6 +127,8 @@ public class MapTrackerUIFX extends Application {
 		lblMarker.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
 		
 		ComboBox<Marker> cbMarkers = new ComboBox<>();
+		cbMarkers.setCellFactory(e -> new MarkerCell());
+		cbMarkers.setButtonCell(new MarkerCell());
 		loadInternalMarkers(cbMarkers);
 		cbMarkers.setOnAction(e -> { currentMarker = cbMarkers.getValue(); });
 		
@@ -378,5 +381,26 @@ public class MapTrackerUIFX extends Application {
 		img.getTransforms().clear();
 		img.getTransforms().add(Transform.scale(scaleFactor, scaleFactor));
 		img.setImage(SwingFXUtils.toFXImage(currentBg, null));
+	}
+	
+	// Custom renderer for the Marker combobox that shows both icons and text
+	// default behavior is text only.
+	private class MarkerCell extends ListCell<Marker> {
+		private ImageView view = new ImageView();
+		
+		@Override
+		public void updateItem(Marker m, boolean empty) {
+			super.updateItem(m, empty);
+			if (empty) {
+				setText(null);
+				setGraphic(null);
+			} else {
+				setText(m.name());
+				view.setFitWidth(30);
+				view.setFitHeight(30);
+				view.setImage(SwingFXUtils.toFXImage(m.img(), null));
+				setGraphic(view);
+			}
+		}
 	}
 }
