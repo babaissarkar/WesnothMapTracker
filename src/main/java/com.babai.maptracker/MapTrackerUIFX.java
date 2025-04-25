@@ -121,7 +121,6 @@ public class MapTrackerUIFX extends Application {
 		
 		ScrollPane scrImg = new ScrollPane();
 		scrImg.setContent(img);
-		scrImg.setMaxSize(screenBounds.getWidth(), 0.70*screenBounds.getHeight());
 		
 		// Bottom Pane
 		GridPane pnlForm = new GridPane();
@@ -311,17 +310,14 @@ public class MapTrackerUIFX extends Application {
 		Stage stage = new Stage();
 		stage.setTitle("Usage Guide");
 		final SwingNode node = new SwingNode();
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				JTextPane textPane = new JTextPane();
-				try {
-					textPane.setPage(this.getClass().getResource("/docs/Usage.html"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				node.setContent(new JScrollPane(textPane));
+		SwingUtilities.invokeLater(() -> {
+			JTextPane textPane = new JTextPane();
+			try {
+				textPane.setPage(this.getClass().getResource("/docs/Usage.html"));
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
+			node.setContent(new JScrollPane(textPane));
 		});
 		VBox box = new VBox(node);
 		VBox.setVgrow(node, Priority.ALWAYS);
