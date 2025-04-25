@@ -21,10 +21,6 @@
  * 
  */
 
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,14 +36,19 @@ import javax.swing.SwingUtilities;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.embed.swing.SwingNode;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -59,6 +60,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.ColumnConstraints;
@@ -70,6 +72,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.transform.Transform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import map.*;
@@ -77,8 +80,8 @@ import map.*;
 public class MapTrackerUIFX extends Application {
 	static final Properties markerNames = new Properties();
 	
-	private double scaleFactor = 1.0;
-	private BufferedImage origBg = null, currentBg = null;
+	private Image origBg = null;
+
 	private Marker currentMarker = null;
 	private Vector<Marker> markers = new Vector<>();
 	private Vector<Mark> marks = new Vector<>();
@@ -101,21 +104,24 @@ public class MapTrackerUIFX extends Application {
 	}
 
 	public void start(Stage stage) throws Exception {
-		stage.setTitle("Map Tracker");
-		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+		stage.setTitle("Map Tracker");	
+		Rectangle2D screenBounds = Screen.getPrimary().getBounds();
 
 		// Main Contents: the background image
-		ImageView img = new ImageView();
+		Canvas img = new Canvas(screenBounds.getWidth(), screenBounds.getHeight());
+		DoubleProperty scaleFactor = new SimpleDoubleProperty(1.0);
+		
+		scaleFactor.addListener(e -> updateView(img, scaleFactor.get()));
 		img.setOnMouseClicked(e -> {
 			addMarker((int) e.getX(), (int) e.getY(), currentMarker);
-			updateView(img);
+			updateView(img, scaleFactor.get());
 		});
 		img.setOnMouseEntered(e -> updateCursor(currentMarker));
 		img.setOnMouseExited(e -> updateCursor(Cursor.DEFAULT));
 		
 		ScrollPane scrImg = new ScrollPane();
 		scrImg.setContent(img);
-		scrImg.setMinSize(0.5*size.width, 0.70*size.height);
+		scrImg.setMaxSize(screenBounds.getWidth(), 0.70*screenBounds.getHeight());
 		
 		// Bottom Pane
 		GridPane pnlForm = new GridPane();
@@ -175,6 +181,7 @@ public class MapTrackerUIFX extends Application {
 		pnlForm.setPadding(new Insets(10));
 		
 		SplitPane mainPane = new SplitPane(scrImg, pnlForm);
+		mainPane.setDividerPosition(0, 0.75);
 		mainPane.setOrientation(Orientation.VERTICAL);
 		
 		pnlForm.setStyle("-fx-background-color: lightblue");
@@ -196,18 +203,8 @@ public class MapTrackerUIFX extends Application {
 		jmiOpen.setOnAction(e -> openImage(stage, img));
 		jmiSave.setOnAction(e -> save(stage));
 		jmiExit.setOnAction(e -> Platform.exit());
-		jmiZoomIn.setOnAction(e -> {
-			if (origBg != null) {
-				scaleFactor /= 2;
-				updateView(img);
-			}
-		});
-		jmiZoomOut.setOnAction(e -> {
-			if (origBg != null) {
-				scaleFactor *= 2;
-				updateView(img);
-			}
-		});
+		jmiZoomIn.setOnAction(e -> scaleFactor.set(scaleFactor.get() * 2));
+		jmiZoomOut.setOnAction(e -> scaleFactor.set(scaleFactor.get() / 2));
 		jmiUsage.setOnAction(e -> showHelp());
 		
 		Menu jmFile = new Menu("File", null, jmiOpen, jmiSave, jmiExit);
@@ -218,7 +215,7 @@ public class MapTrackerUIFX extends Application {
 
 		VBox box = new VBox(5, bar, mainPane);
 		VBox.setVgrow(mainPane, Priority.ALWAYS);
-		scene = new Scene(box, size.width, size.height);
+		scene = new Scene(box, screenBounds.getWidth(), screenBounds.getHeight());
 		stage.setScene(scene);
 		stage.centerOnScreen();
 		stage.show();
@@ -255,7 +252,7 @@ public class MapTrackerUIFX extends Application {
 		}
 	}
 
-	private void openImage(Stage stage, ImageView imgView) {
+	private void openImage(Stage stage, Canvas imgView) {
 		Preferences prPref = Preferences.userNodeForPackage(MapTrackerUIFX.class);
 		FileChooser files = new FileChooser();
 		files.setInitialDirectory(new File(prPref.get("lastOpenDir", System.getProperty("user.home"))));
@@ -264,9 +261,10 @@ public class MapTrackerUIFX extends Application {
 		if (f == null) return;
 
 		try {
-			scaleFactor = 1;
-			origBg = ImageIO.read(f);
-			imgView.setImage(SwingFXUtils.toFXImage(origBg, null));
+			origBg = SwingFXUtils.toFXImage(ImageIO.read(f), null);
+			imgView.widthProperty().bind(origBg.widthProperty());
+			imgView.heightProperty().bind(origBg.heightProperty());
+			updateView(imgView, 1.0);
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} finally {
@@ -280,10 +278,7 @@ public class MapTrackerUIFX extends Application {
 		files.setInitialDirectory(new File(prPref.get("lastSaveDir", System.getProperty("user.home"))));
 		File f = files.showSaveDialog(stage);
 		try (PrintWriter stream = new PrintWriter(f)) {
-			if (!f.exists()) {
-				f.createNewFile();
-			}
-			
+			if (!f.exists()) f.createNewFile();
 			write(stream);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -349,26 +344,9 @@ public class MapTrackerUIFX extends Application {
 		tfCoordY.setText("%d".formatted((int) y));
 	}
 
-	private BufferedImage drawMarkers() {
-		BufferedImage overlay = new BufferedImage(
-				(int) (origBg.getWidth()),
-				(int) (origBg.getHeight()),
-				BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = overlay.createGraphics();
-		
-		g.drawImage(origBg, 0, 0, overlay.getWidth(), overlay.getHeight(), null);
-		for (Mark m : marks) {
-			System.out.println("Drawing: " + m);
-			g.drawImage(m.marker().img(), (int) m.x(), (int) m.y(), null);
-		}
-		
-		g.dispose();
-		return overlay;
-	}
-
 	private void updateCursor(Marker marker) {
 		if (marker == null) return;
-		ImageCursor cursor = new ImageCursor(SwingFXUtils.toFXImage(marker.img(), null));
+		ImageCursor cursor = new ImageCursor(marker.img());
 		scene.setCursor(cursor);
 	}
 	
@@ -376,11 +354,17 @@ public class MapTrackerUIFX extends Application {
 		scene.setCursor(inbuiltCursor);
 	}
 	
-	private void updateView(ImageView img) {
-		currentBg = drawMarkers();
+	private void updateView(Canvas img, double scaleFactor) {
+		GraphicsContext ctx = img.getGraphicsContext2D();
+		ctx.clearRect(0, 0, img.getWidth(), img.getHeight());
+		System.out.println("Drawing Background");
+		ctx.drawImage(origBg, 0, 0);
+		for (Mark m : marks) {
+			System.out.println("Drawing: " + m);
+			ctx.drawImage(m.marker().img(), m.x(), m.y());
+		}
 		img.getTransforms().clear();
 		img.getTransforms().add(Transform.scale(scaleFactor, scaleFactor));
-		img.setImage(SwingFXUtils.toFXImage(currentBg, null));
 	}
 	
 	// Custom renderer for the Marker combobox that shows both icons and text
@@ -398,7 +382,7 @@ public class MapTrackerUIFX extends Application {
 				setText(m.name());
 				view.setFitWidth(30);
 				view.setFitHeight(30);
-				view.setImage(SwingFXUtils.toFXImage(m.img(), null));
+				view.setImage(m.img());
 				setGraphic(view);
 			}
 		}

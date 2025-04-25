@@ -23,23 +23,28 @@
 
 package map;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-public record Marker(String name, String filename, BufferedImage img) {
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
+// Note: JavaFX doesn't have webp support, so we need to piggyback ImageIO
+// to use it's webp-imageio support bridge.
+
+public record Marker(String name, String filename, Image img) {
 	
 	public static Marker load(String name, String filename, File imgFile) throws IOException {
 		var img = ImageIO.read(new FileInputStream(imgFile));
-		return new Marker(name, filename, img);
+		return new Marker(name, filename, SwingFXUtils.toFXImage(img, null));
 	}
 	
 	public static Marker loadInternal(String name, String filename) throws IOException {
 		var img = ImageIO.read(Marker.class.getResourceAsStream("/markers/" + filename));
-		return new Marker(name, filename, img);
+		return new Marker(name, filename, SwingFXUtils.toFXImage(img, null));
 	}
 	
 	@Override
