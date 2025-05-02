@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.babai.maptracker</groupId>
+	<artifactId>maptracker</artifactId>
+	<version>1.0</version>
+
+	<name>MapTracker</name>
+	<url>http://www.github.com/babaissarkar/WesnothMapTracker</url>
+	<description>
+	A JavaFX based GUI Map Tracking tool for Battle for Wesnoth.
+	</description>
+	
+	<developers>
+		<developer>
+			<id>babaissarkar</id>
+			<name>Subhraman Sarkar</name>
+			<email>suvrax@gmail.com</email>
+			<timezone>Asia/Kolkata</timezone>
+		</developer>
+	</developers>
+	
+	<licenses>
+		<license>
+			<name>GPL-2-or-later</name>
+			<url>https://www.gnu.org/licenses/old-licenses/gpl-2.txt</url>
+		</license>
+	</licenses>
+			
+
+	<properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<maven.compiler.source>21</maven.compiler.source>
+	<maven.compiler.target>21</maven.compiler.target>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>io.github.darkxanter</groupId>
+			<artifactId>webp-imageio</artifactId>
+			<version>0.3.2</version>
+	  	</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-base</artifactId>
+			<version>23</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-graphics</artifactId>
+			<version>23</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>23</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-swing</artifactId>
+			<version>23</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-shade-plugin</artifactId>
+			<version>3.5.0</version>
+			<configuration>
+				<finalName>${project.artifactId}</finalName>
+				<outputDirectory>${project.basedir}/jar</outputDirectory>
+				<shadedArtifactAttached>true</shadedArtifactAttached>
+					<artifactSet>
+						<includes>
+							<include>io.github.darkxanter:webp-imageio</include>
+							<include>org.openjfx:javafx-base</include>
+							<include>org.openjfx:javafx-graphics</include>
+							<include>org.openjfx:javafx-controls</include>
+							<include>org.openjfx:javafx-swing</include>
+						</includes>
+					</artifactSet>
+				<transformers>
+					<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+						<mainClass>Main</mainClass>
+					</transformer>
+				</transformers>
+			</configuration>
+			<executions>
+				<execution>
+				<phase>package</phase>
+				<goals>
+					<goal>shade</goal>
+				</goals>
+				</execution>
+			</executions>
+		</plugin>
+		        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+                <execution>
+                    <id>run-jpackage</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>exec</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <executable>jpackage</executable>
+                <arguments>
+		    		<argument>--verbose</argument>
+                    <argument>--type</argument>
+                    <argument>dmg</argument>
+                    <argument>--input</argument>
+                    <argument>${project.basedir}/jar</argument>
+                    <argument>--main-jar</argument>
+                    <argument>${project.artifactId}.jar</argument>
+                    <argument>--name</argument>
+                    <argument>${project.name}</argument>
+                    <argument>--app-version</argument>
+                    <argument>${project.version}</argument>
+                    <argument>--main-class</argument>
+                    <argument>Main</argument>
+                    <argument>--icon</argument>
+                    <argument>${project.artifactId}.icns</argument>
+                    <argument>--copyright</argument>
+                    <argument>Subhraman Sarkar</argument>
+                </arguments>
+            </configuration>
+        </plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-checkstyle-plugin</artifactId>
+			<version>3.2.0</version> <!-- Make sure to use the latest version -->
+			<executions>
+				<execution>
+					<id>checkstyle</id>
+					<goals>
+						<goal>check</goal>
+					</goals>
+				</execution>
+			</executions>
+			<configuration>
+				<configLocation>checkstyle.xml</configLocation>
+				<!-- Optional: You can suppress warnings from 3rd-party libraries with excludeFilter properties -->
+			</configuration>
+		</plugin>
+	</plugins>
+	</build>
+</project>
