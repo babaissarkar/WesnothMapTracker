@@ -45,6 +45,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -66,6 +67,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
@@ -109,18 +111,20 @@ public class MapTrackerUIFX extends Application {
 
 		// Main Contents: the background image
 		Canvas img = new Canvas(screenBounds.getWidth(), screenBounds.getHeight());
+		Pane p = new Pane(new Group(img));
 		DoubleProperty scaleFactor = new SimpleDoubleProperty(1.0);
+		ScrollPane scrImg = new ScrollPane(p);
 		
 		scaleFactor.addListener(e -> updateView(img, scaleFactor.get()));
 		img.setOnMouseClicked(e -> {
+			double sf = scaleFactor.get();
 			addMarker((int) e.getX(), (int) e.getY(), currentMarker);
-			updateView(img, scaleFactor.get());
+			updateView(img, sf);
+			p.setPrefWidth(origBg.getWidth() * sf);
+			p.setPrefHeight(origBg.getHeight() * sf);
 		});
 		img.setOnMouseEntered(e -> updateCursor(currentMarker));
 		img.setOnMouseExited(e -> updateCursor(Cursor.DEFAULT));
-		
-		ScrollPane scrImg = new ScrollPane();
-		scrImg.setContent(img);
 		
 		// Bottom Pane
 		GridPane pnlForm = new GridPane();
