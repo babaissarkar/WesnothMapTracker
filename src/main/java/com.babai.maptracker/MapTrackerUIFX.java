@@ -258,7 +258,10 @@ public class MapTrackerUIFX extends Application {
 	private void openImage(Stage stage, Canvas imgView) {
 		Preferences prPref = Preferences.userNodeForPackage(MapTrackerUIFX.class);
 		FileChooser files = new FileChooser();
-		files.setInitialDirectory(new File(prPref.get("lastOpenDir", System.getProperty("user.home"))));
+		File openedDir = new File(prPref.get("lastOpenDir", System.getProperty("user.home")));
+		if (openedDir.exists() && openedDir.isDirectory()) {
+			files.setInitialDirectory(openedDir);
+		}
 		File f = files.showOpenDialog(stage);
 		
 		if (f == null) return;
